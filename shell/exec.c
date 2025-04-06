@@ -64,9 +64,18 @@ set_environ_vars(char **eargv, int eargc)
 static int
 open_redir_fd(char *file, int flags)
 {
-	// Your code here
+	int fd;
+	if (flags & O_CREAT){
+		fd = open(file, flags, S_IRUSR | S_IWUSR);
+	} else{
+		fd = open(file, flags);
+	}
+	if (fd < 0){
+		perror("Error al abrir archivo");
+		_exit(-1);
+	}
 
-	return -1;
+	return fd;
 }
 
 // executes a command - does not return
@@ -87,10 +96,15 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		//
-		// Your code here
-		printf("Commands are not yet implemented\n");
-		_exit(-1);
+		
+		e = (struct execcmd *) cmd;
+
+		e->argv[e->argc] = NULL;
+		if (execvp(e->argv[0], e->argv) == -1){
+			perror("Error en el exec");
+			_exit(-1);
+		}
+		_exit(0);
 		break;
 
 	case BACK: {
