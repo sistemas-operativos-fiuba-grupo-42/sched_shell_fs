@@ -122,10 +122,52 @@ exec_cmd(struct cmd *cmd)
 		// To check if a redirection has to be performed
 		// verify if file name's length (in the execcmd struct)
 		// is greater than zero
-		//
-		// Your code here
-		printf("Redirections are not yet implemented\n");
-		_exit(-1);
+		
+		r = (struct execcmd *) cmd;
+		if (strlen(r->in_file) > 0){
+			int fd_in = open_redir_fd(r->in_file, O_RDONLY | O_CLOEXEC);
+			if (dup2(fd_in, STDIN_FILENO) < 0) {
+				perror("Error en dup2");
+				_exit(-1);
+			} 
+			if (close(fd_in) < 0) {
+				perror("Error en close");
+				_exit(-1);
+			}
+		}
+		if (strlen(r->out_file) > 0){			
+			int fd_out = open_redir_fd(r->out_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
+			if (dup2(fd_out, STDOUT_FILENO) < 0) {
+				perror("Error en dup2");
+				_exit(-1);
+			} 
+			if (close(fd_out) < 0) {
+				perror("Error en close");
+				_exit(-1);
+			}
+		}
+		if (strlen(r->err_file) > 0){
+			if (strcmp(r->err_file, "&1") == 0){
+				if (dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
+					perror("Error en dup2");
+					_exit(-1);
+				} 
+			} else{
+				int fd_err = open_redir_fd(r->err_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
+				if (dup2(fd_err, STDERR_FILENO) < 0) {
+					perror("Error en dup2");
+					_exit(-1);
+				} 
+				if (close(fd_err) < 0) {
+					perror("Error en close");
+					_exit(-1);
+				}
+			}
+		}
+
+		r->type = EXEC;
+		exec_cmd(r);
+		_exit(0);
 		break;
 	}
 
