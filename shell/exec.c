@@ -228,11 +228,17 @@ exec_cmd(struct cmd *cmd)
 		
 		close(pipes[READ]);
 		close(pipes[WRITE]);
-		waitpid(pid_i, NULL, 0);
-		waitpid(pid_d, NULL, 0);
+		int status_left, status_right;
+		waitpid(pid_i, &status_left, 0);
+		waitpid(pid_d, &status_right, 0);
 		free_command(p);
-		_exit(0);
-		break;
+		
+
+		if (WIFEXITED(status_right)) {
+			_exit(WEXITSTATUS(status_right));
+		} else {
+			_exit(-1);
+		}
 	}
 	}
 }
