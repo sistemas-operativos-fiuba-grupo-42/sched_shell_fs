@@ -174,13 +174,64 @@ exec_cmd(struct cmd *cmd)
 	case PIPE: {
 		// pipes two commands
 		//
-		// Your code here
-		printf("Pipes are not yet implemented\n");
 
-		// free the memory allocated
-		// for the pipe tree structure
-		free_command(parsed_pipe);
+		p = (struct pipecmd *) cmd;
+		int pipes[2];
 
+		if (pipe(pipes) < 0){
+			perror("Error en el pipe");
+			_exit(-1);
+		}
+
+		int pid_i = fork();
+		if (pid_i < 0){
+			perror("Error en el pipe");
+			free_command(p->leftcmd);
+			free_command(p->rightcmd);
+			close(pipes[READ]);
+			close(pipes[WRITE]);
+			_exit(-1);
+		} else if (pid_i == 0) {
+			free_command(p->rightcmd);
+			close(pipes[READ]);
+			if (dup2(pipes[WRITE], STDOUT_FILENO) < 0) {
+				perror("Error en dup2");
+				free_command(p->leftcmd);
+				_exit(-1);
+			}
+			close(pipes[WRITE]);
+			exec_cmd(p->leftcmd);
+			_exit(0);
+		}
+
+		int pid_d = fork();
+		if (pid_d < 0) {
+			perror("Error en el pipe");
+			free_command(p->leftcmd);
+			free_command(p->rightcmd);
+			close(pipes[READ]);
+			close(pipes[WRITE]);
+			_exit(-1);
+		} else if (pid_d == 0) {
+			free_command(p->leftcmd);
+			close(pipes[WRITE]);
+			if (dup2(pipes[READ], STDIN_FILENO) < 0) {
+				perror("Error en dup2");
+				free_command(p->rightcmd);
+				_exit(-1);
+			}
+			close(pipes[READ]);
+			exec_cmd(p->rightcmd);
+			_exit(0);
+		}
+
+		
+		close(pipes[READ]);
+		close(pipes[WRITE]);
+		waitpid(pid_i, NULL, 0);
+		waitpid(pid_d, NULL, 0);
+		free_command(p);
+		_exit(0);
 		break;
 	}
 	}
