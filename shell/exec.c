@@ -48,7 +48,23 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	for (int i = 0; i < eargc; i++){
+		int pos = block_contains(eargv[i], '=');
+		char *key = malloc(pos + 1);
+		char *value = malloc(strlen(eargv[i]) - pos + 1);
+		if (key == NULL || value == NULL){
+			perror("Error en malloc");
+			_exit(-1);
+		}
+		get_environ_key(eargv[i], key);
+		get_environ_value(eargv[i], value, pos);
+		if (setenv(key, value, 1) == -1) {
+			perror("Error en setenv");
+			_exit(-1);
+		}
+		free(key);
+		free(value);
+	}
 }
 
 // opens the file in which the stdin/stdout/stderr
@@ -100,6 +116,7 @@ exec_cmd(struct cmd *cmd)
 		e = (struct execcmd *) cmd;
 
 		e->argv[e->argc] = NULL;
+		set_environ_vars(e->eargv, e->eargc);
 		if (execvp(e->argv[0], e->argv) == -1){
 			perror("Error en el exec");
 			_exit(-1);

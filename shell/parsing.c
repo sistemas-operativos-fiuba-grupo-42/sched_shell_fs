@@ -1,4 +1,6 @@
 #include "parsing.h"
+extern int status;
+
 
 // parses an argument of the command stream input
 static char *
@@ -101,8 +103,28 @@ parse_environ_var(struct execcmd *c, char *arg)
 static char *
 expand_environ_var(char *arg)
 {
-	// Your code here
-
+	if (arg[0] != '$'){
+		return arg;
+	}
+	if (arg[1] == '?'){
+		sprintf(arg, "%d", status);
+		return arg;
+	}
+	char *value = getenv(arg+1);
+	if (value == 0) {
+		arg[0] = '\0';
+		return arg;
+	}
+	size_t len_value = strlen(value);
+	if (len_value > strlen(arg+1)){
+		char *aux = realloc(arg, len_value + 1);
+		if (aux == NULL){
+			perror("Error en realloc");
+			_exit(-1);
+		}
+		arg = aux;
+	}
+	strcpy(arg, value);
 	return arg;
 }
 
@@ -134,7 +156,9 @@ parse_exec(char *buf_cmd)
 
 		tok = expand_environ_var(tok);
 
-		c->argv[argc++] = tok;
+		if (tok[0] != '\0'){
+			c->argv[argc++] = tok;
+		}
 	}
 
 	c->argv[argc] = (char *) NULL;
