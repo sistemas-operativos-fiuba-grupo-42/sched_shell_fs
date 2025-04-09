@@ -50,6 +50,15 @@ Luego repetirlo, invirtiendo el orden de las redirecciones (es decir, 2>&1 >out.
 
 ### Tuberías múltiples
 
+-> Responder: Investigar que ocurre con el exit code reportado por la shell si se ejecuta un pipe. 
+Cambia en algo?
+
+    Al ejecutar un pipe en nuestra shell, decidimos que el exit code que se reporte sea el del ultimo comando del pipeline, es decir, el de la derecha del todo. Esto es una convencion que se adopto en shells como Bash y resulta comodo ya que el exit code del ultimo comando es un indicador global del exito o fracaso de la operacion. Ademas, en ese ultimo comando se produce la salida "final" que interesa.
+
+Que ocurre si, en un pipe, alguno de los comandos falla?
+
+    En nuestra implementacion depende cual es el comando que falla, el comportamiento que se espera. En el caso de que falle el primer comando, pero el ultimo sea exitoso, el exit code sera 0, ya que se devuelve siempre el exit code del ultimo comando ejecutado (el de la derecha). En caso de que el ultimo falle, se devuelve un exit code de error. Esto lleva la misma logica que Bash, con la diferencia de que dicha shell implementa una serie de codigos de error especificos (como 127 para "comando no encontrado", o 126 para "no se pudo ejecutar"), mientras que nuestros exit codes dependen de valores fijos que se determinan en cada situacion. El exit code del ultimo comando del pipe se ve ejecutando el comando $?. Adjuntamos imagen de como es en Bash, y luego otra de como es en nuestra implementacion.
+
 ---
 
 ### Variables de entorno temporarias
