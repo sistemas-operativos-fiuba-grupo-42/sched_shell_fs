@@ -166,7 +166,7 @@ exec_cmd(struct cmd *cmd)
 		}
 
 		r->type = EXEC;
-		exec_cmd(r);
+		exec_cmd((struct cmd *) r);
 		_exit(0);
 		break;
 	}
@@ -180,14 +180,14 @@ exec_cmd(struct cmd *cmd)
 
 		if (pipe(pipes) < 0){
 			perror("Error en el pipe");
+			free_command((struct cmd *) p);
 			_exit(-1);
 		}
 
 		int pid_i = fork();
 		if (pid_i < 0){
-			perror("Error en el pipe");
-			free_command(p->leftcmd);
-			free_command(p->rightcmd);
+			perror("Error en fork");
+			free_command((struct cmd *) p);
 			close(pipes[READ]);
 			close(pipes[WRITE]);
 			_exit(-1);
@@ -196,19 +196,20 @@ exec_cmd(struct cmd *cmd)
 			close(pipes[READ]);
 			if (dup2(pipes[WRITE], STDOUT_FILENO) < 0) {
 				perror("Error en dup2");
-				free_command(p->leftcmd);
+				free_command((struct cmd *) p);
 				_exit(-1);
 			}
 			close(pipes[WRITE]);
-			exec_cmd(p->leftcmd);
+			struct cmd *left = p->leftcmd;
+			free(p);
+			exec_cmd(left);
 			_exit(0);
 		}
 
 		int pid_d = fork();
 		if (pid_d < 0) {
-			perror("Error en el pipe");
-			free_command(p->leftcmd);
-			free_command(p->rightcmd);
+			perror("Error en fork");
+			free_command((struct cmd *) p);
 			close(pipes[READ]);
 			close(pipes[WRITE]);
 			_exit(-1);
@@ -217,22 +218,22 @@ exec_cmd(struct cmd *cmd)
 			close(pipes[WRITE]);
 			if (dup2(pipes[READ], STDIN_FILENO) < 0) {
 				perror("Error en dup2");
-				free_command(p->rightcmd);
+				free_command((struct cmd *) p);
 				_exit(-1);
 			}
 			close(pipes[READ]);
-			exec_cmd(p->rightcmd);
+			struct cmd *right = p->rightcmd;
+			free(p);
+			exec_cmd(right);
 			_exit(0);
 		}
-
 		
 		close(pipes[READ]);
 		close(pipes[WRITE]);
 		int status_left, status_right;
 		waitpid(pid_i, &status_left, 0);
 		waitpid(pid_d, &status_right, 0);
-		free_command(p);
-		
+		free_command((struct cmd *) p);
 
 		if (WIFEXITED(status_right)) {
 			_exit(WEXITSTATUS(status_right));
