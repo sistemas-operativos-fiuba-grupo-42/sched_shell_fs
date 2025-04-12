@@ -1,4 +1,5 @@
 #include "exec.h"
+extern stack_t alt_stack;
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -119,6 +120,8 @@ exec_cmd(struct cmd *cmd)
 		set_environ_vars(e->eargv, e->eargc);
 		if (execvp(e->argv[0], e->argv) == -1){
 			perror("Error en el exec");
+			free_command((struct cmd *) e);
+			free(alt_stack.ss_sp);
 			_exit(-1);
 		}
 		_exit(0);
@@ -146,10 +149,14 @@ exec_cmd(struct cmd *cmd)
 			int fd_in = open_redir_fd(r->in_file, O_RDONLY | O_CLOEXEC);
 			if (dup2(fd_in, STDIN_FILENO) < 0) {
 				perror("Error en dup2");
+				free_command((struct cmd *) r);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			} 
 			if (close(fd_in) < 0) {
 				perror("Error en close");
+				free_command((struct cmd *) r);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			}
 		}
@@ -157,10 +164,14 @@ exec_cmd(struct cmd *cmd)
 			int fd_out = open_redir_fd(r->out_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
 			if (dup2(fd_out, STDOUT_FILENO) < 0) {
 				perror("Error en dup2");
+				free_command((struct cmd *) r);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			} 
 			if (close(fd_out) < 0) {
 				perror("Error en close");
+				free_command((struct cmd *) r);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			}
 		}
@@ -168,16 +179,22 @@ exec_cmd(struct cmd *cmd)
 			if (strcmp(r->err_file, "&1") == 0){
 				if (dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
 					perror("Error en dup2");
+					free_command((struct cmd *) r);
+					free(alt_stack.ss_sp);
 					_exit(-1);
 				} 
 			} else{
 				int fd_err = open_redir_fd(r->err_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
 				if (dup2(fd_err, STDERR_FILENO) < 0) {
 					perror("Error en dup2");
+					free_command((struct cmd *) r);
+					free(alt_stack.ss_sp);
 					_exit(-1);
 				} 
 				if (close(fd_err) < 0) {
 					perror("Error en close");
+					free_command((struct cmd *) r);
+					free(alt_stack.ss_sp);
 					_exit(-1);
 				}
 			}
@@ -199,6 +216,7 @@ exec_cmd(struct cmd *cmd)
 		if (pipe(pipes) < 0){
 			perror("Error en el pipe");
 			free_command((struct cmd *) p);
+			free(alt_stack.ss_sp);
 			_exit(-1);
 		}
 
@@ -208,6 +226,7 @@ exec_cmd(struct cmd *cmd)
 			free_command((struct cmd *) p);
 			close(pipes[READ]);
 			close(pipes[WRITE]);
+			free(alt_stack.ss_sp);
 			_exit(-1);
 		} else if (pid_i == 0) {
 			free_command(p->rightcmd);
@@ -215,6 +234,7 @@ exec_cmd(struct cmd *cmd)
 			if (dup2(pipes[WRITE], STDOUT_FILENO) < 0) {
 				perror("Error en dup2");
 				free_command((struct cmd *) p);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			}
 			close(pipes[WRITE]);
@@ -230,6 +250,7 @@ exec_cmd(struct cmd *cmd)
 			free_command((struct cmd *) p);
 			close(pipes[READ]);
 			close(pipes[WRITE]);
+			free(alt_stack.ss_sp);
 			_exit(-1);
 		} else if (pid_d == 0) {
 			free_command(p->leftcmd);
@@ -237,10 +258,19 @@ exec_cmd(struct cmd *cmd)
 			if (dup2(pipes[READ], STDIN_FILENO) < 0) {
 				perror("Error en dup2");
 				free_command((struct cmd *) p);
+				free(alt_stack.ss_sp);
 				_exit(-1);
 			}
 			close(pipes[READ]);
 			struct cmd *right = p->rightcmd;
+			if (right->type != BACK){
+				if (setpgid(0, 0) == -1){
+					perror("Error en setpgid");
+					free_command((struct cmd *) p);
+					free(alt_stack.ss_sp);
+					_exit(-1);
+				}
+			}
 			free(p);
 			exec_cmd(right);
 			_exit(0);
@@ -252,6 +282,7 @@ exec_cmd(struct cmd *cmd)
 		waitpid(pid_i, &status_left, 0);
 		waitpid(pid_d, &status_right, 0);
 		free_command((struct cmd *) p);
+		free(alt_stack.ss_sp);
 
 		if (WIFEXITED(status_right)) {
 			_exit(WEXITSTATUS(status_right));

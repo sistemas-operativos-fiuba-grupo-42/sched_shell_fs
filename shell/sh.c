@@ -2,32 +2,43 @@
 #include "types.h"
 #include "readline.h"
 #include "runcmd.h"
+#include <signal.h>
 
 char prompt[PRMTLEN] = { 0 };
+stack_t alt_stack;
 
-// sigaltstack(2) Inicializa stack alternativo
-// sigaction(2) ¿inicializa handler?
-// Ejecuta codigo async-signal-safe :(
+void int_to_str(int num, char *str) {
+    int i = 0;
+    int temp = num;
+
+    do {
+        i++;
+        temp /= 10;
+    } while (temp != 0);
+
+    str[i] = '\0';
+
+    while (i > 0) {
+        i--;
+        str[i] = '0' + (num % 10);
+        num /= 10;
+    }
+}
+
 void sigchild_handler(int signum) {
     pid_t pid; int status;
 
 	pid = waitpid(0, &status, WNOHANG);
-	if (pid == -1) {
-		perror("Error en waitpid");
-		_exit(-1);
-	}
 	if (pid > 0) {
 		char str[] = "==> terminado: PID=";
-        // write(1, str, sizeof(str)); 
+        write(STDOUT_FILENO, str, sizeof(str)); 
     
-        // write(1, &pid, sizeof(pid));
-		// write(1, "\n", 1);
-
-		printf("==> terminado: PID=%d\n", pid);
-
+		char pid_str[12] = {0};
+		int_to_str(pid, pid_str);
+        write(STDOUT_FILENO, pid_str, sizeof(pid_str));
+		write(STDOUT_FILENO, "\n", 2);
 	}
 }
-
 
 
 // runs a shell command
@@ -56,30 +67,28 @@ init_shell()
 		snprintf(prompt, sizeof prompt, "(%s)", home);
 	}
 	
-	stack_t ss;
-    ss.ss_sp = malloc(SIGSTKSZ); // Asignar memoria para la pila (SIGSTKSZ es el tamaño recomendado)
-    if (ss.ss_sp == NULL) {
+    alt_stack.ss_sp = malloc(SIGSTKSZ); // Asignar memoria para la pila (SIGSTKSZ es el tamaño recomendado)
+    if (alt_stack.ss_sp == NULL) {
 		perror("Error al asignar memoria para la pila alternativa");
         exit(-1);
     }
-    ss.ss_size = SIGSTKSZ;
-    ss.ss_flags = 0;
+    alt_stack.ss_size = SIGSTKSZ;
+    alt_stack.ss_flags = 0;
 	
 	// sigaltstack(new_ss, old_ss)
-	if (sigaltstack(&ss, NULL) < 0) {
+	if (sigaltstack(&alt_stack, NULL) < 0) {
 		perror("Error al ejecutar sigalstack");
+		free(alt_stack.ss_sp);
 		exit(-1);
 	}
-
-	struct sigaction a = {
-		sigchild_handler, 
-		0, 
-		0, 
-		SA_SIGINFO | SA_RESTART | SA_ONSTACK, 
-		0
-	};
-	if (sigaction(SIGCHLD, &a, NULL) < 0) {
+	
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigchild_handler;
+	sa.sa_flags = SA_SIGINFO | SA_RESTART | SA_ONSTACK;
+	if (sigaction(SIGCHLD, &sa, NULL) < 0) {
 		perror("Error al ejectutar sigaction");
+		free(alt_stack.ss_sp);
 		exit(-1);
 	}
 } 
@@ -90,6 +99,7 @@ main(void)
 	init_shell();
 
 	run_shell();
-
+	
+	free(alt_stack.ss_sp);
 	return 0;
 }

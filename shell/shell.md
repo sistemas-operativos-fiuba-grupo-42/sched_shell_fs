@@ -17,6 +17,10 @@ Sí, puede fallar y devuelve -1, especificando el error en **errno**. Nuestra im
 
 ### Procesos en segundo plano
 
+-> Responder: ¿Por qué es necesario el uso de señales?
+
+El uso de señales es necesario para que el kernel pueda liberar siempre los recursos del proceso que se ejecutó en background inmediatamente este termine. 
+
 ---
 
 ### Flujo estándar
