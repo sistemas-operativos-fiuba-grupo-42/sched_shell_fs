@@ -127,8 +127,8 @@ Algunas otras mágicas estándar son:
         $ ./argumentos.sh uno "dos con espacios" tres
 
         Usando "$@":
-        [uno]
-        [dos con espacios]
+        [uno] 
+        [dos con espacios] 
         [tres]
 
         Usando "$*":
@@ -141,7 +141,7 @@ Algunas otras mágicas estándar son:
         /bin/bash
     ```
 
- `\$!` Devuelve el p del último proceso ejecutado en el back.
+ `\$!` Devuelve el pid del último proceso ejecutado en el back.
 
     ```shell
         $ sleep 3 &
