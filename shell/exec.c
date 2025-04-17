@@ -49,11 +49,11 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	for (int i = 0; i < eargc; i++){
+	for (int i = 0; i < eargc; i++) {
 		int pos = block_contains(eargv[i], '=');
 		char *key = malloc(pos + 1);
 		char *value = malloc(strlen(eargv[i]) - pos + 1);
-		if (key == NULL || value == NULL){
+		if (key == NULL || value == NULL) {
 			perror("Error en malloc");
 			_exit(-1);
 		}
@@ -82,12 +82,12 @@ static int
 open_redir_fd(char *file, int flags)
 {
 	int fd;
-	if (flags & O_CREAT){
+	if (flags & O_CREAT) {
 		fd = open(file, flags, S_IRUSR | S_IWUSR);
-	} else{
+	} else {
 		fd = open(file, flags);
 	}
-	if (fd < 0){
+	if (fd < 0) {
 		perror("Error al abrir archivo");
 		_exit(-1);
 	}
@@ -113,12 +113,12 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		
+
 		e = (struct execcmd *) cmd;
 
 		e->argv[e->argc] = NULL;
 		set_environ_vars(e->eargv, e->eargc);
-		if (execvp(e->argv[0], e->argv) == -1){
+		if (execvp(e->argv[0], e->argv) == -1) {
 			perror("Error en el exec");
 			free_command((struct cmd *) e);
 			free(alt_stack.ss_sp);
@@ -129,9 +129,9 @@ exec_cmd(struct cmd *cmd)
 
 	case BACK: {
 		// runs a command in background
-	
+
 		b = (struct backcmd *) cmd;
-		
+
 		exec_cmd(b->c);
 		_exit(0);
 		break;
@@ -143,16 +143,17 @@ exec_cmd(struct cmd *cmd)
 		// To check if a redirection has to be performed
 		// verify if file name's length (in the execcmd struct)
 		// is greater than zero
-		
+
 		r = (struct execcmd *) cmd;
-		if (strlen(r->in_file) > 0){
-			int fd_in = open_redir_fd(r->in_file, O_RDONLY | O_CLOEXEC);
+		if (strlen(r->in_file) > 0) {
+			int fd_in =
+			        open_redir_fd(r->in_file, O_RDONLY | O_CLOEXEC);
 			if (dup2(fd_in, STDIN_FILENO) < 0) {
 				perror("Error en dup2");
 				free_command((struct cmd *) r);
 				free(alt_stack.ss_sp);
 				_exit(-1);
-			} 
+			}
 			if (close(fd_in) < 0) {
 				perror("Error en close");
 				free_command((struct cmd *) r);
@@ -160,14 +161,16 @@ exec_cmd(struct cmd *cmd)
 				_exit(-1);
 			}
 		}
-		if (strlen(r->out_file) > 0){			
-			int fd_out = open_redir_fd(r->out_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
+		if (strlen(r->out_file) > 0) {
+			int fd_out = open_redir_fd(r->out_file,
+			                           O_WRONLY | O_CREAT |
+			                                   O_CLOEXEC | O_TRUNC);
 			if (dup2(fd_out, STDOUT_FILENO) < 0) {
 				perror("Error en dup2");
 				free_command((struct cmd *) r);
 				free(alt_stack.ss_sp);
 				_exit(-1);
-			} 
+			}
 			if (close(fd_out) < 0) {
 				perror("Error en close");
 				free_command((struct cmd *) r);
@@ -175,22 +178,25 @@ exec_cmd(struct cmd *cmd)
 				_exit(-1);
 			}
 		}
-		if (strlen(r->err_file) > 0){
-			if (strcmp(r->err_file, "&1") == 0){
+		if (strlen(r->err_file) > 0) {
+			if (strcmp(r->err_file, "&1") == 0) {
 				if (dup2(STDOUT_FILENO, STDERR_FILENO) < 0) {
 					perror("Error en dup2");
 					free_command((struct cmd *) r);
 					free(alt_stack.ss_sp);
 					_exit(-1);
-				} 
-			} else{
-				int fd_err = open_redir_fd(r->err_file, O_WRONLY | O_CREAT | O_CLOEXEC | O_TRUNC);
+				}
+			} else {
+				int fd_err = open_redir_fd(r->err_file,
+				                           O_WRONLY | O_CREAT |
+				                                   O_CLOEXEC |
+				                                   O_TRUNC);
 				if (dup2(fd_err, STDERR_FILENO) < 0) {
 					perror("Error en dup2");
 					free_command((struct cmd *) r);
 					free(alt_stack.ss_sp);
 					_exit(-1);
-				} 
+				}
 				if (close(fd_err) < 0) {
 					perror("Error en close");
 					free_command((struct cmd *) r);
@@ -213,7 +219,7 @@ exec_cmd(struct cmd *cmd)
 		p = (struct pipecmd *) cmd;
 		int pipes[2];
 
-		if (pipe(pipes) < 0){
+		if (pipe(pipes) < 0) {
 			perror("Error en el pipe");
 			free_command((struct cmd *) p);
 			free(alt_stack.ss_sp);
@@ -221,7 +227,7 @@ exec_cmd(struct cmd *cmd)
 		}
 
 		int pid_i = fork();
-		if (pid_i < 0){
+		if (pid_i < 0) {
 			perror("Error en fork");
 			free_command((struct cmd *) p);
 			close(pipes[READ]);
@@ -263,8 +269,8 @@ exec_cmd(struct cmd *cmd)
 			}
 			close(pipes[READ]);
 			struct cmd *right = p->rightcmd;
-			if (right->type != BACK){
-				if (setpgid(0, 0) == -1){
+			if (right->type != BACK) {
+				if (setpgid(0, 0) == -1) {
 					perror("Error en setpgid");
 					free_command((struct cmd *) p);
 					free(alt_stack.ss_sp);
@@ -275,7 +281,7 @@ exec_cmd(struct cmd *cmd)
 			exec_cmd(right);
 			_exit(0);
 		}
-		
+
 		close(pipes[READ]);
 		close(pipes[WRITE]);
 		int status_left, status_right;

@@ -42,8 +42,8 @@ run_cmd(char *cmd)
 		if (parsed->type == PIPE)
 			parsed_pipe = parsed;
 
-		if (parsed->type != BACK){
-			if (setpgid(0, 0) == -1){
+		if (parsed->type != BACK) {
+			if (setpgid(0, 0) == -1) {
 				perror("Error en setpgid");
 				_exit(-1);
 			}
@@ -63,13 +63,13 @@ run_cmd(char *cmd)
 	//
 
 	// waits for the process to finish
-	if (parsed->type == BACK){
+	if (parsed->type == BACK) {
 		print_back_info(parsed);
-	} else{
+	} else {
 		waitpid(p, &status, 0);
 		print_status_info(parsed);
 	}
-	
+
 	free_command(parsed);
 
 	return 0;

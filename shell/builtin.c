@@ -10,7 +10,7 @@ exit_shell(char *cmd)
 {
 	if (strcmp(cmd, "exit") == 0) {
 		status = 0;
-		return 1; 
+		return 1;
 	}
 	return 0;
 }
@@ -39,8 +39,8 @@ cd(char *cmd)
 		return 0;
 	}
 
-	char* dir;
-	if (strlen(cmd + 2) == 0 || strlen(cmd + 3) == 0){ // "cd \0" "cd\0"
+	char *dir;
+	if (strlen(cmd + 2) == 0 || strlen(cmd + 3) == 0) {  // "cd \0" "cd\0"
 		dir = getenv("HOME");
 		if (dir == NULL) {
 			perror("Error: $HOME no está definido");
@@ -49,23 +49,23 @@ cd(char *cmd)
 		}
 	} else {
 		dir = cmd + 3;
-	} 
+	}
 	if (chdir(dir) < 0) {
-		perror("Error al cambiar de directorio"); 
+		perror("Error al cambiar de directorio");
 		status = -1;
 		return 0;
 	}
 
 	// Update the prompt with the new directory
-	char buf[BUFLEN - 2]; 
-	if (getcwd(buf, sizeof(buf)) == NULL) { 
+	char buf[BUFLEN - 2];
+	if (getcwd(buf, sizeof(buf)) == NULL) {
 		perror("Error al obtener el directorio actual");
 		status = -1;
 		return 0;
 	}
 	snprintf(prompt, PRMTLEN, "(%s)", buf);
 	status = 0;
-	return 1; // return true
+	return 1;  // return true
 }
 
 // returns true if 'pwd' was invoked

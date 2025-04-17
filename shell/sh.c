@@ -7,36 +7,50 @@
 char prompt[PRMTLEN] = { 0 };
 stack_t alt_stack;
 
-void int_to_str(int num, char *str) {
-    int i = 0;
-    int temp = num;
+void
+int_to_str(int num, char *str)
+{
+	int i = 0;
+	int temp = num;
 
-    do {
-        i++;
-        temp /= 10;
-    } while (temp != 0);
+	do {
+		i++;
+		temp /= 10;
+	} while (temp != 0);
 
-    str[i] = '\0';
+	str[i] = '\0';
 
-    while (i > 0) {
-        i--;
-        str[i] = '0' + (num % 10);
-        num /= 10;
-    }
+	while (i > 0) {
+		i--;
+		str[i] = '0' + (num % 10);
+		num /= 10;
+	}
 }
 
-void sigchild_handler(int signum) {
-    pid_t pid; int status;
+void
+sigchild_handler(int signum)
+{
+	pid_t pid;
+	int status;
 
 	pid = waitpid(0, &status, WNOHANG);
 	if (pid > 0) {
 		char str[] = "==> terminado: PID=";
-        write(STDOUT_FILENO, str, sizeof(str)); 
-    
-		char pid_str[12] = {0};
+		if (write(STDOUT_FILENO, str, sizeof(str)) < 0) {
+			perror("Error en write");
+			_exit(-1);
+		}
+
+		char pid_str[12] = { 0 };
 		int_to_str(pid, pid_str);
-        write(STDOUT_FILENO, pid_str, sizeof(pid_str));
-		write(STDOUT_FILENO, "\n", 2);
+		if (write(STDOUT_FILENO, pid_str, sizeof(pid_str)) < 0) {
+			perror("Error en write");
+			_exit(-1);
+		}
+		if (write(STDOUT_FILENO, "\n", 2) < 0) {
+			perror("Error en write");
+			_exit(-1);
+		}
 	}
 }
 
@@ -66,22 +80,23 @@ init_shell()
 	} else {
 		snprintf(prompt, sizeof prompt, "(%s)", home);
 	}
-	
-    alt_stack.ss_sp = malloc(SIGSTKSZ); // Asignar memoria para la pila (SIGSTKSZ es el tamaño recomendado)
-    if (alt_stack.ss_sp == NULL) {
+
+	alt_stack.ss_sp = malloc(
+	        SIGSTKSZ);  // Asignar memoria para la pila (SIGSTKSZ es el tamaño recomendado)
+	if (alt_stack.ss_sp == NULL) {
 		perror("Error al asignar memoria para la pila alternativa");
-        exit(-1);
-    }
-    alt_stack.ss_size = SIGSTKSZ;
-    alt_stack.ss_flags = 0;
-	
+		exit(-1);
+	}
+	alt_stack.ss_size = SIGSTKSZ;
+	alt_stack.ss_flags = 0;
+
 	// sigaltstack(new_ss, old_ss)
 	if (sigaltstack(&alt_stack, NULL) < 0) {
 		perror("Error al ejecutar sigalstack");
 		free(alt_stack.ss_sp);
 		exit(-1);
 	}
-	
+
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigchild_handler;
@@ -91,7 +106,7 @@ init_shell()
 		free(alt_stack.ss_sp);
 		exit(-1);
 	}
-} 
+}
 
 int
 main(void)
@@ -99,7 +114,7 @@ main(void)
 	init_shell();
 
 	run_shell();
-	
+
 	free(alt_stack.ss_sp);
 	return 0;
 }
