@@ -507,8 +507,16 @@ env_run(struct Env *e)
 	//	e->env_tf.  Go back through the code you wrote above
 	//	and make sure you have set the relevant parts of
 	//	e->env_tf to sensible values.
+	
 	// Your code here
+	if (curenv && curenv->env_status == ENV_RUNNING){
+		curenv->env_status = ENV_RUNNABLE;
+	}
+
 	curenv = e;
+	curenv->env_status = ENV_RUNNING;
+	curenv->env_runs++;
+	env_load_pgdir(curenv);
 
 	// Needed if we run with multiple procesors
 	// Record the CPU we are running on for user-space debugging
