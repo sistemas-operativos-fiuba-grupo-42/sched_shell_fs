@@ -28,6 +28,23 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// Your code here - Round robin
+	
+	struct Env *e = curenv;
+	int i_curenv = e != NULL ? ENVX(e->env_id) : 0;
+
+	for (int i = 1; i < NENV + 1; i++) {
+		int idx = (i_curenv + i) % NENV;
+		struct Env *env = envs+idx;
+
+		if (env->env_status == ENV_RUNNABLE) {
+			env_run(env);
+		}
+	}
+	
+	if (e != NULL && e->env_status == ENV_RUNNING) {
+		env_run(e);
+	}
+
 #endif
 
 #ifdef SCHED_PRIORITIES
@@ -42,11 +59,13 @@ sched_yield(void)
 	// Your code here - Priorities
 #endif
 
-	// Without scheduler, keep runing the last environment while it exists
+	// Without scheduler, keep runing the last environment while it exists 
+	/*
 	if (curenv) {
 		env_run(curenv);
 	}
-
+	*/
+	
 	// sched_halt never returns
 	sched_halt();
 }
