@@ -4,6 +4,13 @@
 #include <kern/env.h>
 #include <kern/pmap.h>
 #include <kern/monitor.h>
+#define MAX_RUNS_PRIORITY_0 1000
+#define MAX_RUNS_PRIORITY_1 1000
+#define MAX_RUNS_PRIORITY_2 1000
+
+int priority_0_runs = 0;
+int priority_1_runs = 0;
+int priority_2_runs = 0;
 
 void sched_halt(void);
 
@@ -35,7 +42,6 @@ sched_yield(void)
 	for (int i = 1; i < NENV + 1; i++) {
 		int idx = (i_curenv + i) % NENV;
 		struct Env *env = envs+idx;
-
 		if (env->env_status == ENV_RUNNABLE) {
 			env_run(env);
 		}
@@ -57,23 +63,86 @@ sched_yield(void)
 	// environment is selected and run every time.
 
 	// Your code here - Priorities
+	
+	if (priority_0_runs == MAX_RUNS_PRIORITY_0 &&
+	    priority_1_runs == MAX_RUNS_PRIORITY_1 &&
+	    priority_2_runs == MAX_RUNS_PRIORITY_2) {
+	    priority_0_runs = 0;
+	    priority_1_runs = 0;
+	    priority_2_runs = 0;
+	}
+
+	struct Env *e = curenv;
+	int i_curenv = e ? ENVX(e->env_id) : 0;
+
+	struct Env *next[3] = { NULL, NULL, NULL };
+	int min_runs[3] = { __INT32_MAX__, __INT32_MAX__, __INT32_MAX__ };
+
+	for (int i = 1; i < NENV + 1; i++) {
+		int idx = (i_curenv + i) % NENV;
+		struct Env *env = &envs[idx];
+
+		if (env->env_status != ENV_RUNNABLE) continue;
+
+		int pr = env->priority;
+		if (pr >= 0 && pr <= 2 && env->env_runs < min_runs[pr]) {
+			min_runs[pr] = env->env_runs;
+			next[pr] = env;
+		}
+	}
+
+	if (next[0] && priority_0_runs < MAX_RUNS_PRIORITY_0) {
+		priority_0_runs++;
+		env_run(next[0]);
+	} else if (next[1] && priority_1_runs < MAX_RUNS_PRIORITY_1) {
+		priority_1_runs++;
+		env_run(next[1]);
+	} else if (next[2] && priority_2_runs < MAX_RUNS_PRIORITY_2) {
+		priority_2_runs++;
+		env_run(next[2]);
+	} else if (next[0]){
+		priority_0_runs = 0;
+		priority_1_runs = 0;
+		priority_2_runs = 0;
+		priority_0_runs++;
+		env_run(next[0]);
+	} else if (next[1] && !next[0]){
+		priority_0_runs = 0;
+		priority_1_runs = 0;
+		priority_2_runs = 0;
+		priority_1_runs++;
+		env_run(next[1]);
+	}  else if (next[2] && !next[0] && !next[1]){
+		priority_0_runs = 0;
+		priority_1_runs = 0;
+		priority_2_runs = 0;
+		priority_2_runs++;
+		env_run(next[2]);
+	}
+
+	if (e != NULL && e->env_status == ENV_RUNNING) {
+		env_run(e);
+	}
+	
+
 #endif
 
-	// Without scheduler, keep runing the last environment while it exists 
-	/*
-	if (curenv) {
-		env_run(curenv);
+		
+		// Without scheduler, keep runing the last environment while it exists 
+		/*
+		if (curenv) {
+			env_run(curenv);
+			}
+			*/
+		
+		// sched_halt never returns
+		sched_halt();
 	}
-	*/
 	
-	// sched_halt never returns
-	sched_halt();
-}
-
-// Halt this CPU when there is nothing to do. Wait until the
-// timer interrupt wakes it up. This function never returns.
-//
-void
+	// Halt this CPU when there is nothing to do. Wait until the
+	// timer interrupt wakes it up. This function never returns.
+	//
+	void
 sched_halt(void)
 {
 	int i;

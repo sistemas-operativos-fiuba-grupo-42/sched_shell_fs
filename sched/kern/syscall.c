@@ -12,6 +12,25 @@
 #include <kern/console.h>
 #include <kern/sched.h>
 
+#define WORST_PRIORITY 2
+
+static int 
+sys_get_priority(struct Env *env) {
+	if (env) return env->priority;
+	return -1;
+}
+
+static int 
+sys_set_priority(struct Env *env, int new_priority) {
+	if (env && new_priority < env->priority) {
+		return -1;
+	}
+	if (new_priority > WORST_PRIORITY){
+		return -1;
+	}
+	env->priority = new_priority;
+	return 0;
+}
 
 static int
 check_perm(int perm, pte_t *pte)
@@ -460,6 +479,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		return sys_env_set_pgfault_upcall(a1, (void *) a2);
 	case SYS_yield:
 		sys_yield();  // No return
+	case SYS_get_priority:
+		sys_get_priority((struct Env *) a1);
+	case SYS_set_priority:
+		sys_set_priority((struct Env *) a1, a2);
 	default:
 		return -E_INVAL;
 	}

@@ -112,3 +112,15 @@ sys_ipc_recv(void *dstva)
 {
 	return syscall(SYS_ipc_recv, 1, (uint32_t) dstva, 0, 0, 0, 0);
 }
+
+#define WORST_PRIORITY 2
+
+int 
+sys_get_priority(struct Env *env) {
+	return syscall(SYS_get_priority, 0, (uint32_t) env, 0, 0, 0, 0);
+}
+
+int 
+sys_set_priority(struct Env *env, int new_priority) {
+	return syscall(SYS_set_priority, 0, (uint32_t) env, new_priority, 0, 0, 0);
+}
