@@ -4,13 +4,33 @@
 #include <kern/env.h>
 #include <kern/pmap.h>
 #include <kern/monitor.h>
-#define MAX_RUNS_PRIORITY_0 1000
-#define MAX_RUNS_PRIORITY_1 1000
-#define MAX_RUNS_PRIORITY_2 1000
+
+#define MAX_RUNS_PRIORITY_0 15
+#define MAX_RUNS_PRIORITY_1 7
+#define MAX_RUNS_PRIORITY_2 2
+
+#define LEN_HISTORY 10
+
 
 int priority_0_runs = 0;
 int priority_1_runs = 0;
 int priority_2_runs = 0;
+
+struct Stats {
+	int history[LEN_HISTORY];
+	int process_executions[NENV];
+	int sched_calls;
+};
+
+struct Stats stats = {0};
+
+void update_stats(int i) {
+	stats.process_executions[i]++;
+	for (int i = 1; i < LEN_HISTORY; i++){
+		stats.history[i-1] = stats.history[i];
+	}
+	stats.history[LEN_HISTORY-1] = i;
+}
 
 void sched_halt(void);
 
@@ -36,6 +56,7 @@ sched_yield(void)
 
 	// Your code here - Round robin
 	
+	stats.sched_calls++;
 	struct Env *e = curenv;
 	int i_curenv = e != NULL ? ENVX(e->env_id) : 0;
 
@@ -43,11 +64,13 @@ sched_yield(void)
 		int idx = (i_curenv + i) % NENV;
 		struct Env *env = envs+idx;
 		if (env->env_status == ENV_RUNNABLE) {
+			update_stats(ENVX(env->env_id));
 			env_run(env);
 		}
 	}
 	
 	if (e != NULL && e->env_status == ENV_RUNNING) {
+		update_stats(ENVX(e->env_id));
 		env_run(e);
 	}
 
@@ -64,6 +87,7 @@ sched_yield(void)
 
 	// Your code here - Priorities
 	
+	stats.sched_calls++;
 	if (priority_0_runs == MAX_RUNS_PRIORITY_0 &&
 	    priority_1_runs == MAX_RUNS_PRIORITY_1 &&
 	    priority_2_runs == MAX_RUNS_PRIORITY_2) {
@@ -93,41 +117,45 @@ sched_yield(void)
 
 	if (next[0] && priority_0_runs < MAX_RUNS_PRIORITY_0) {
 		priority_0_runs++;
+		update_stats(ENVX(next[0]->env_id));
 		env_run(next[0]);
 	} else if (next[1] && priority_1_runs < MAX_RUNS_PRIORITY_1) {
 		priority_1_runs++;
+		update_stats(ENVX(next[1]->env_id));
 		env_run(next[1]);
 	} else if (next[2] && priority_2_runs < MAX_RUNS_PRIORITY_2) {
 		priority_2_runs++;
+		update_stats(ENVX(next[2]->env_id));
 		env_run(next[2]);
 	} else if (next[0]){
 		priority_0_runs = 0;
 		priority_1_runs = 0;
 		priority_2_runs = 0;
 		priority_0_runs++;
+		update_stats(ENVX(next[0]->env_id));
 		env_run(next[0]);
 	} else if (next[1] && !next[0]){
 		priority_0_runs = 0;
 		priority_1_runs = 0;
 		priority_2_runs = 0;
 		priority_1_runs++;
+		update_stats(ENVX(next[1]->env_id));		
 		env_run(next[1]);
 	}  else if (next[2] && !next[0] && !next[1]){
 		priority_0_runs = 0;
 		priority_1_runs = 0;
 		priority_2_runs = 0;
 		priority_2_runs++;
+		update_stats(ENVX(next[2]->env_id));
 		env_run(next[2]);
 	}
 
 	if (e != NULL && e->env_status == ENV_RUNNING) {
+		update_stats(ENVX(e->env_id));
 		env_run(e);
 	}
 	
-
 #endif
-
-		
 		// Without scheduler, keep runing the last environment while it exists 
 		/*
 		if (curenv) {
@@ -138,7 +166,22 @@ sched_yield(void)
 		// sched_halt never returns
 		sched_halt();
 	}
-	
+
+void print_stats() {
+	cprintf("scheduler calls: %d\n", stats.sched_calls);
+	cprintf("LAST %d PROCESS EXECUTIONS:\n", LEN_HISTORY);
+
+	for (int i = 0; i < LEN_HISTORY; i++) {
+		cprintf("env: %d ", stats.history[i]);
+	}
+	cprintf("\n");
+
+	cprintf("PROCESS EXECUTIONS\n");
+	for (int i = 0; i < NENV; i++) {
+		cprintf("env: %d | runs: %d\n", i, stats.process_executions[i]);
+	}
+}
+
 	// Halt this CPU when there is nothing to do. Wait until the
 	// timer interrupt wakes it up. This function never returns.
 	//
@@ -157,6 +200,7 @@ sched_halt(void)
 	}
 	if (i == NENV) {
 		cprintf("No runnable environments in the system!\n");
+		print_stats();
 		while (1)
 			monitor(NULL);
 	}
