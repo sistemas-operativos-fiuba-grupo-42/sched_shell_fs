@@ -115,12 +115,14 @@ sys_ipc_recv(void *dstva)
 
 #define WORST_PRIORITY 2
 
-int 
-sys_get_priority(envid_t id) {
+int
+sys_get_priority(envid_t id)
+{
 	return syscall(SYS_get_priority, 0, id, 0, 0, 0, 0);
 }
 
-int 
-sys_set_priority(envid_t id, int new_priority) {
+int
+sys_set_priority(envid_t id, int new_priority)
+{
 	return syscall(SYS_set_priority, 0, id, new_priority, 0, 0, 0);
 }

@@ -14,22 +14,24 @@
 
 #define WORST_PRIORITY 2
 
-static int 
-sys_get_priority(envid_t id) {
+static int
+sys_get_priority(envid_t id)
+{
 	int i = ENVX(id);
-	return (envs+i)->priority;
+	return (envs + i)->priority;
 }
 
-static int 
-sys_set_priority(envid_t id, int new_priority) {
+static int
+sys_set_priority(envid_t id, int new_priority)
+{
 	int i = ENVX(id);
-	if (new_priority < (envs+i)->priority) {
+	if (new_priority < (envs + i)->priority) {
 		return -1;
 	}
-	if (new_priority > WORST_PRIORITY){
+	if (new_priority > WORST_PRIORITY) {
 		return -1;
 	}
-	(envs+i)->priority = new_priority;
+	(envs + i)->priority = new_priority;
 	return 0;
 }
 

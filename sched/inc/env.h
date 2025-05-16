@@ -60,7 +60,7 @@ struct Env {
 	envid_t env_ipc_from;    // envid of the sender
 	int env_ipc_perm;        // Perm of page mapping received
 
-	int priority; // (new)
+	int priority;  // (new)
 };
 
 #endif  // !JOS_INC_ENV_H
