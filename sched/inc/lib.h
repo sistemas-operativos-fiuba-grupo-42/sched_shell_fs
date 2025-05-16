@@ -58,8 +58,7 @@ int sys_get_priority(envid_t id);
 int sys_set_priority(envid_t id, int new_priority);
 
 // This must be inlined.  Exercise for reader: why?
-static inline envid_t __attribute__((always_inline))
-sys_exofork(void)
+static inline envid_t __attribute__((always_inline)) sys_exofork(void)
 {
 	envid_t ret;
 	asm volatile("int %2" : "=a"(ret) : "a"(SYS_exofork), "i"(T_SYSCALL));
