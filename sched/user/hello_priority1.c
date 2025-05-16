@@ -3,7 +3,7 @@
 void
 umain(int argc, char **argv)
 {
-    sys_set_priority(thisenv->env_id, 1);
+	sys_set_priority(thisenv->env_id, 1);
 	sys_yield();
 
 	cprintf("hello, world\n");
