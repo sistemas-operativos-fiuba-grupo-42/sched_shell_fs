@@ -54,8 +54,8 @@ int sys_page_unmap(envid_t env, void *pg);
 int sys_ipc_try_send(envid_t to_env, uint32_t value, void *pg, int perm);
 int sys_ipc_recv(void *rcv_pg);
 
-int sys_get_priority(struct Env *env);
-int sys_set_priority(struct Env *env, int new_priority);
+int sys_get_priority(envid_t id);
+int sys_set_priority(envid_t id, int new_priority);
 
 // This must be inlined.  Exercise for reader: why?
 static inline envid_t __attribute__((always_inline)) sys_exofork(void)

@@ -116,11 +116,11 @@ sys_ipc_recv(void *dstva)
 #define WORST_PRIORITY 2
 
 int 
-sys_get_priority(struct Env *env) {
-	return syscall(SYS_get_priority, 0, (uint32_t) env, 0, 0, 0, 0);
+sys_get_priority(envid_t id) {
+	return syscall(SYS_get_priority, 0, id, 0, 0, 0, 0);
 }
 
 int 
-sys_set_priority(struct Env *env, int new_priority) {
-	return syscall(SYS_set_priority, 0, (uint32_t) env, new_priority, 0, 0, 0);
+sys_set_priority(envid_t id, int new_priority) {
+	return syscall(SYS_set_priority, 0, id, new_priority, 0, 0, 0);
 }

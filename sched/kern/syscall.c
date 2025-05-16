@@ -15,20 +15,21 @@
 #define WORST_PRIORITY 2
 
 static int 
-sys_get_priority(struct Env *env) {
-	if (env) return env->priority;
-	return -1;
+sys_get_priority(envid_t id) {
+	int i = ENVX(id);
+	return (envs+i)->priority;
 }
 
 static int 
-sys_set_priority(struct Env *env, int new_priority) {
-	if (env && new_priority < env->priority) {
+sys_set_priority(envid_t id, int new_priority) {
+	int i = ENVX(id);
+	if (new_priority < (envs+i)->priority) {
 		return -1;
 	}
 	if (new_priority > WORST_PRIORITY){
 		return -1;
 	}
-	env->priority = new_priority;
+	(envs+i)->priority = new_priority;
 	return 0;
 }
 
@@ -480,9 +481,9 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	case SYS_yield:
 		sys_yield();  // No return
 	case SYS_get_priority:
-		sys_get_priority((struct Env *) a1);
+		return sys_get_priority(a1);
 	case SYS_set_priority:
-		sys_set_priority((struct Env *) a1, a2);
+		return sys_set_priority(a1, a2);
 	default:
 		return -E_INVAL;
 	}
