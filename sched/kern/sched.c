@@ -106,7 +106,7 @@ sched_yield(void)
 		int idx = (i_curenv + i) % NENV;
 		struct Env *env = &envs[idx];
 
-		if (env->env_status != ENV_RUNNABLE) continue;
+		if (env->env_status != ENV_RUNNABLE && !(env->env_status == ENV_RUNNING && env == curenv)) continue;
 
 		int pr = env->priority;
 		if (pr >= 0 && pr <= 2 && env->env_runs < min_runs[pr]) {
