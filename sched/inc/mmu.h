@@ -292,7 +292,7 @@ struct Gatedesc {
 //	  this interrupt/trap gate explicitly using an int instruction.
 #define SETGATE(gate, istrap, sel, off, dpl)                                   \
 	{                                                                      \
-		(gate).gd_off_15_0 = (uint32_t) (off) &0xffff;                \
+		(gate).gd_off_15_0 = (uint32_t) (off) &0xffff;                 \
 		(gate).gd_sel = (sel);                                         \
 		(gate).gd_args = 0;                                            \
 		(gate).gd_rsv1 = 0;                                            \
