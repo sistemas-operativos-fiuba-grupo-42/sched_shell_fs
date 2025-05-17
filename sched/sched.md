@@ -2,14 +2,21 @@
 
 ## Seguimiento cambio de contexto con GDB
 
-![](img/1.jpg)
+Contenido de la pila al correr la funcion `context_switch`. Se puede apreciar como el contenido de la pila va cambiando dependiendo del offset
 
-![](img/2.jpg)
+Luego del `popa`, el cual hace pop de todos los registros de propósito general, se puede ver que la pila se movio 8 posiciones, una por cada registro (edi, esi, ebp, esp, ebx, edx, ecx, eax).
 
-![](img/3.jpg)
+![](img/context_switch1.jpg)
 
-![](img/4.jpg)
-priorities
+Luego de `pop $es` y `pop $ds`, se mueve una posición, ya que se esta sacando un registro de la pila. 
+
+![](img/context_switch2.jpg)
+
+Se puede apreciar como el contenido de los registers cambia luego de la instruccion `iret`, el cual modifica los siguientes registros: eip, cs, eflags, esp y ss.
+
+![](img/context_switch3.jpg)
+
+
 
 ## Política de scheduling con prioridades
 
@@ -21,3 +28,8 @@ El scheduler con prioridades que implementamos, consiste en recorrer los proceso
 
 Una vez que todos los `priority_$N_runs` alcanzan las `MAX_RUNS_PRIORITY_$N` ó cuando se quiere ejecutar un proceso de menor prioridad, y los de mayor prioridad están disponibles pero han alcanzado su cuota máxima, se reinician los `priority_$N_runs` a cero, dando la posibilidad de ejecutar procesos de prioridades altas que estaban estáticos y evitando el `sched_halt` cuando hay algún proceso disponible para correr.
 
+### Test de prioridades
+
+Para comprobar el funcionamiento esperado para nuestro scheduler con prioridades, creamos dos procesos de usuario, los cuales cada uno se setea su prioridad en 1 y 2 respectivamente, para verificar que luego el scheduler seleccionaba primero el de prioridad más alta (menor número) y luego el otro.  
+
+![](img/prueba_procesos_distinta_prioridad.jpg)
