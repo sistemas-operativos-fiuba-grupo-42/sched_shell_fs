@@ -1,3 +1,6 @@
 fisopfs
 *.fisopfs
 *.o
+
+repomix.config.json
+.repomixignore
