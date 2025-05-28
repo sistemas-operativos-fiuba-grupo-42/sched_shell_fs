@@ -43,15 +43,9 @@ int get_nfiles(const char* path) {
 			cant++;
 		}
 	}
-	return cant - 1; // skip the directory itself
+	return cant - 1;
 }
 
-/** Get file attributes.
- *
- * Similar to stat().  The 'st_dev' and 'st_blksize' fields are
- * ignored.	 The 'st_ino' field is ignored except if the 'use_ino'
- * mount option is given.
- */
 static int
 fisopfs_getattr(const char *path, struct stat *st)
 {
@@ -78,17 +72,6 @@ fisopfs_getattr(const char *path, struct stat *st)
 	return 0;
 }
 
-/**
- * Initialize filesystem
- *
- * The return value will passed in the private_data field of
- * fuse_context to all file operations and as a parameter to the
- * destroy() method.
- *
- * Introduced in version 2.3
- * Changed in version 2.6
-	void *(*init) (struct fuse_conn_info *conn);
- */
 void* fisopfs_init(struct fuse_conn_info *conn){
 	printf("[debug] fisopfs_init\n");
 
@@ -118,14 +101,22 @@ void* fisopfs_init(struct fuse_conn_info *conn){
 	return 0;
 }
 
-/**
- * Clean up filesystem
- *
- * Called on filesystem exit.
- *
- * Introduced in version 2.3
- */
-void destroy(void *fs) {
+void fisopfs_destroy(void *f) {
+	printf("[debug] fisopfs_destroy\n");
+
+	FILE *file = fopen(filedisk, "w");
+	if (file == NULL){
+		fprintf(stderr, "[debug] fisopfs_destroy %s\n", strerror(errno));
+		return;
+	}
+
+	size_t bytes = fwrite(&fs, sizeof(fs), 1, file);
+	if (bytes != 1){
+		fprintf(stderr, "[debug] fisopfs_destroy %s\n", strerror(errno));
+		return;
+	}
+	fflush(file);
+	fclose(file);
 }
 
 
@@ -188,21 +179,6 @@ fisopfs_readdir(const char *path,
 
 	return 0;
 }
-
-#define MAX_CONTENIDO 100
-static char fisop_file_contenidos[MAX_CONTENIDO] = "hola fisopfs!\n";
-
-	/** Read data from an open file
-	 *
-	 * Read should return exactly the number of bytes requested except
-	 * on EOF or error, otherwise the rest of the data will be
-	 * substituted with zeroes.	 An exception to this is when the
-	 * 'direct_io' mount option is specified, in which case the return
-	 * value of the read system call will reflect the return value of
-	 * this operation.
-	 *
-	 * Changed in version 2.2
-	 */
 
 static int
 fisopfs_read(const char *path,
@@ -435,6 +411,12 @@ int fisopfs_rmdir(const char *path) {
 	return 0;
 }
 
+int fisopfs_flush(const char *, struct fuse_file_info *) {
+	printf("[debug] fisopfs_flush\n");
+	fisopfs_destroy(NULL);
+	return 0;
+}
+
 static struct fuse_operations operations = {
 	.getattr = fisopfs_getattr,
 	.readdir = fisopfs_readdir,
@@ -446,7 +428,9 @@ static struct fuse_operations operations = {
 	.utimens = fisopfs_utimens,
 	.truncate = fisopfs_truncate,
 	.unlink = fisopfs_unlink,
-	.rmdir = fisopfs_rmdir
+	.rmdir = fisopfs_rmdir,
+	.destroy = fisopfs_destroy,
+	.flush = fisopfs_flush
 };
 
 
