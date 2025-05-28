@@ -33,7 +33,7 @@ $ ./fisopfs prueba/
 ```
 
 Hay una flag `--filedisk NAME` para indicar que archivo se
- quiere utilizar como archivo de persistencia en disco. 
+ quiere utilizar como archivo de persistencia en disco.
  El valor por defecto es "persistence_file.fisopfs"
 
 ```bash
