@@ -1,6 +1,7 @@
 #ifndef FS_H
 #define FS_H
 
+#define FUSE_USE_VERSION 30
 #include <fuse.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -37,20 +38,26 @@ struct fs
     inode_t inodes[MAX_INODES];
 };
 
-struct fs fs;
+// auxiliares
+int get_inode_index(const char *path);
+int get_unused_inode();
+int get_nfiles(const char* path);
 
-/*
-int fisopfs_init();
-int fisops_destroy();
-int fisopfs_readdir();
-int fisopfs_read();
+void* fs_init(const char *filedisk);
+void fs_destroy(const char *filedisk);
+int fs_getattr(const char *path, struct stat *st);
+int fs_read(const char *path, char *buffer, size_t size, off_t offset);
+int fs_create(const char *path, mode_t mode);
+int fs_write(const char *path, const char *buffer, size_t size, off_t offset);
+int fs_mkdir(const char *path, mode_t mode);
+int fs_utimens(const char *path, const struct timespec tv[2]);
+int fs_truncate(const char *path, off_t length);
+int fs_unlink(const char *path);
+int fs_rmdir(const char *path);
+int fs_flush(const char *path, char *filedisk);
 
-int fisopfs_opendir(const char *, struct fuse_file_info *);
-int mkdir(const char *);
-int rmdir(const char *);
-int unlink(const char *);
-int symlink(const char *, const char *);
-int link(const char *, const char *);
-*/
+int get_inode_in_directory(const char *path, int *index, char *entry_name);
+int fs_is_directory(const char *path);
+int fs_readdir_entries(const char *path, void *buffer, fuse_fill_dir_t filler);
 
 #endif

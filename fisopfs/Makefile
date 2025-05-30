@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS := -ggdb3 -O2 -Wall -std=c11
-CFLAGS += -Wno-unused-function -Wvla
+CFLAGS += -Wno-unused-function -Wvla -D_FILE_OFFSET_BITS=64
 
 # Flags for FUSE
 LDLIBS := $(shell pkg-config fuse --cflags --libs)
@@ -9,8 +9,10 @@ LDLIBS := $(shell pkg-config fuse --cflags --libs)
 FS_NAME := fisopfs
 
 all: build
-	
+
 build: $(FS_NAME)
+
+$(FS_NAME): fs.o
 
 format: .clang-files .clang-format
 	xargs -r clang-format -i <$<
