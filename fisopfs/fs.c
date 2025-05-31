@@ -53,26 +53,6 @@ int fs_is_directory(const char *path) {
     return 0;
 }
 
-int fs_readdir_entries(const char *path, void *buffer, fuse_fill_dir_t filler) {
-    printf("[debug] fs_readdir_entries - path: %s\n", path);
-
-	char full_path[MAX_PATH_SIZE];
- 	if (strcmp(path, "/") == 0) {
- 	    strcpy(full_path, "/");
- 	} else {
-        snprintf(full_path, sizeof(full_path), "%s/", path);
- 	}
-
-	char entry_name[MAX_PATH_SIZE];
-    int index = 0;
-    int res = get_inode_in_directory(full_path, &index, entry_name);
-    while (res > 0) {
-        filler(buffer, entry_name, NULL, 0);
-        res = get_inode_in_directory(full_path, &index, entry_name);
-    }
-    return 0;
-}
-
 // --- FILESYSTEM
 void* fs_init(const char *filedisk) {
 	printf("[debug] fs_init\n");
@@ -131,18 +111,18 @@ fs_getattr(const char *path, struct stat *st)
 		fprintf(stderr, "[debug] fs_getattr - path: %s\n", strerror(ENOENT));
 		return -ENOENT;
 	}
-	inode_t inode = fs.inodes[inode_index];
+	inode_t *inode = &(fs.inodes[inode_index]);
 
-	st->st_uid = inode.uid;
-	st->st_gid = inode.gid;
-	st->st_mode = inode.mode;
+	st->st_uid = inode->uid;
+	st->st_gid = inode->gid;
+	st->st_mode = inode->mode;
 
-	st->st_size = inode.size;
-	st->st_nlink = inode.nlink;
+	st->st_size = inode->size;
+	st->st_nlink = inode->nlink;
 
-	st->st_atime = inode.last_access;
-	st->st_mtime = inode.last_modified;
-	st->st_ctime = inode.creation_time;
+	st->st_atime = inode->last_access;
+	st->st_mtime = inode->last_modified;
+	st->st_ctime = inode->creation_time;
 
 	return 0;
 }

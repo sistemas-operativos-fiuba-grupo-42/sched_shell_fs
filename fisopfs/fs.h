@@ -1,8 +1,6 @@
 #ifndef FS_H
 #define FS_H
 
-#define FUSE_USE_VERSION 30
-#include <fuse.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -11,6 +9,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <time.h>
 #include <stdbool.h>
 
 #define MAX_INODES 1024
@@ -22,8 +21,8 @@ typedef struct inode
     bool is_directory;
     bool valid;
 	mode_t mode;
-	int gid;
-	int uid;
+	gid_t gid;
+	uid_t uid;
     size_t size;
     time_t creation_time;
     time_t last_access;
@@ -58,6 +57,4 @@ int fs_flush(const char *path, char *filedisk);
 
 int get_inode_in_directory(const char *path, int *index, char *entry_name);
 int fs_is_directory(const char *path);
-int fs_readdir_entries(const char *path, void *buffer, fuse_fill_dir_t filler);
-
 #endif

@@ -58,5 +58,87 @@ Para encontrar un archivo en específico mediante su path se implementó la func
 
 ## Persistencia del file system en disco
 
+Cuando se inicia el file system, de haberse indicado la flag `--filedisk` seguida de una ruta para persistir el filesystem, o bien si existe el archivo persistence_file.fisopfs, se carga en memoria el filesystem que contenía el archivo. Cuando se ejecuta el destroy, se escribe en el archivo de persistencia toda la informacion que contiene el file system y se asegura su persistencia con `fflush`.
 
-    El formato de serialización del sistema de archivos en disco (ver siguiente sección)
+
+## Tests
+
+Implementamos una serie de pruebas que testean todas las funcionalidades requeridas. Para su compilación y ejecución debemos estar situados en el directorio fisopfs.
+
+### Compilación y ejecución
+
+```sh
+    make docker-run
+    make
+    bash test_fisopfs.sh
+```
+
+### Resultados
+
+```sh
+    Test 1: File creation
+    Filesystem mounted successfully
+    PASS  : Files created successfully
+    Hello
+    PASS  : File content correct
+    Filesystem unmounted
+
+
+    Test 2: File reading
+    Filesystem mounted successfully
+    Test content
+    PASS  : File read correctly
+    Filesystem unmounted
+
+
+    Test 3: File writing
+    Filesystem mounted successfully
+    Initial
+    Appended
+    PASS  : Append write successful
+    PASS  : Truncate write successful
+    Filesystem unmounted
+
+
+    Test 4: File deletion
+    Filesystem mounted successfully
+    PASS : File deleted successfully
+    Filesystem unmounted
+
+
+    Test 5: Directory creation
+    Filesystem mounted successfully
+    PASS : Directory created successfully
+    Filesystem unmounted
+
+
+    Test 6: Directory listing
+    Filesystem mounted successfully
+    total 0
+    drwxr-xr-x 1 root root 0 May 31 01:38 .
+    drwxr-xr-x 1 root root 0 May 31 01:38 ..
+    -rw-r--r-- 0 root root 0 May 31 01:38 file1.txt
+    PASS : Directory listing includes . and ..
+    Filesystem unmounted
+
+
+    Test 7: Directory deletion
+    Filesystem mounted successfully
+    PASS : Empty directory deleted successfully
+    PASS : Non-empty directory deletion failed as expected
+    Filesystem unmounted
+
+
+    Test 8: Binary file handling
+    Filesystem mounted successfully
+    PASS : Binary file handled correctly
+    Filesystem unmounted
+
+
+    Test 9: Persistence
+    Filesystem mounted successfully
+    Filesystem unmounted
+    Filesystem mounted successfully
+    PASS : Data persisted across mounts
+    Filesystem unmounted
+```

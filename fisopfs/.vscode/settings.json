@@ -5,6 +5,7 @@
         "stdbool.h": "c",
         "time.h": "c",
         "stdlib.h": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "file.h": "c"
     }
 }
