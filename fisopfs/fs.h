@@ -16,33 +16,31 @@
 #define MAX_FILE_SIZE 4096
 #define MAX_PATH_SIZE 256
 
-typedef struct inode
-{
-    bool is_directory;
-    bool valid;
+typedef struct inode {
+	bool is_directory;
+	bool valid;
 	mode_t mode;
 	gid_t gid;
 	uid_t uid;
-    size_t size;
-    time_t creation_time;
-    time_t last_access;
-    time_t last_modified;
-    int nlink;
+	size_t size;
+	time_t creation_time;
+	time_t last_access;
+	time_t last_modified;
+	int nlink;
 	char path[MAX_PATH_SIZE];
-    char data[MAX_FILE_SIZE];
+	char data[MAX_FILE_SIZE];
 } inode_t;
 
-struct fs
-{
-    inode_t inodes[MAX_INODES];
+struct fs {
+	inode_t inodes[MAX_INODES];
 };
 
 // auxiliares
 int get_inode_index(const char *path);
 int get_unused_inode();
-int get_nfiles(const char* path);
+int get_nfiles(const char *path);
 
-void* fs_init(const char *filedisk);
+void *fs_init(const char *filedisk);
 void fs_destroy(const char *filedisk);
 int fs_getattr(const char *path, struct stat *st);
 int fs_read(const char *path, char *buffer, size_t size, off_t offset);
