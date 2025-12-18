@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>💾 Fisop Sched</h1>
+  <h1>🔄 Fisop Sched</h1>
 
   <p>
     <strong>Sistemas Operativos (7508) - FIUBA</strong><br>
