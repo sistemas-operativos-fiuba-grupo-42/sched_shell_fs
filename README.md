@@ -14,7 +14,7 @@
 
   <br>
 
-  <img src="Terminal.png" alt="Ejecución en Terminal" width="80%" style="border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.2);">
+  <img src="./sched/Terminal.png" alt="Ejecución en Terminal" width="80%" style="border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.2);">
   </div>
 
 ---
@@ -37,7 +37,7 @@
 
 El desarrollo teórico, incluyendo el análisis del cambio de contexto con GDB y la justificación de las decisiones de diseño del scheduler de prioridades, se encuentra detallado en el archivo:
 
-* [sched.md](./sched.md)
+* [sched.md](./sched/sched.md)
 
 ## 🚀 Compilación y Ejecución
 
