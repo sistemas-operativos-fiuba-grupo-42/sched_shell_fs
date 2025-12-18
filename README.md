@@ -12,7 +12,7 @@
 
   <br>
 
-  <img src="Terminal.png" alt="Ejecución en Terminal" width="80%" style="border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.2);">
+  <img src="./shell/Terminal.png" alt="Ejecución en Terminal" width="80%" style="border-radius: 10px; box-shadow: 0px 4px 10px rgba(0,0,0,0.2);">
 
   </div>
 
@@ -37,7 +37,7 @@ Este proyecto consiste en la implementación de una Shell interactiva compatible
 ## 📝 Respuestas teóricas
 
 El desarrollo teórico y las explicaciones sobre el funcionamiento interno (ciclo de vida de procesos, syscalls utilizadas como fork, exec, pipe, dup) se encuentran en:
-* [shell.md](./shell.md)
+* [shell.md](./shell/shell.md)
 
 ## 🚀 Compilación y Ejecución
 
