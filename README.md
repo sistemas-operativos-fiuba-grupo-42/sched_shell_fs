@@ -10,17 +10,17 @@
 
 Este repositorio contiene tres proyectos principales, cada uno alojado en su propia rama independiente. Haz clic en los enlaces para ver el código y la documentación de cada uno:
 
-### 1. [🐚 Shell](/../../tree/shell)
+### 1. [🐚 Shell](/../../tree/entrega_shell)
 Implementación de un intérprete de comandos interactivo estilo UNIX.
 * **Rama:** `shell`
 * **Features:** Pipes, redirecciones, ejecución en background, manejo de procesos.
 
-### 2. [🔄 Scheduler (Kernel)](/../../tree/sched)
+### 2. [🔄 Scheduler (Kernel)](/../../tree/entrega_sched)
 Implementación de un planificador de procesos dentro del kernel educativo JOS.
 * **Rama:** `sched`
 * **Features:** Cambio de contexto (x86), Round Robin, Prioridades, System Calls.
 
-### 3. [💾 FisopFS (File System)](/../../tree/fisopfs)
+### 3. [💾 FisopFS (File System)](/../../tree/entrega_fs)
 Sistema de archivos en espacio de usuario implementado con FUSE.
 * **Rama:** `fisopfs`
 * **Features:** Persistencia en archivo binario, operaciones POSIX, inodos en memoria.
