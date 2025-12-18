@@ -30,7 +30,7 @@
 ## 📝 Respuestas teóricas
 
 El desarrollo teórico, incluyendo las estructuras de datos elegidas y las decisiones de diseño, se encuentra detallado en el archivo:
-* [fisopfs.md](./fisopfs.md)
+* [fisopfs.md](./fisopfs/fisopfs.md)
 
 ## 🚀 Compilación y Ejecución
 
